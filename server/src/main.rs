@@ -32,6 +32,7 @@ async fn index(schema: web::Data<SchemaType>, req: GraphQLRequest) -> GraphQLRes
 fn create_db() -> DbType {
     let manager = ConnectionManager::<PgConnection>::new(std::env::var("DATABASE_URL").unwrap());
     Pool::builder()
+        .max_size(5)
         .build(manager)
         .expect("Could not build connection pool")
 }
