@@ -54,7 +54,7 @@ async fn main() -> std::io::Result<()> {
             .service(graphql_playground)
     })
     .bind((
-        "127.0.0.1",
+        "0.0.0.0",
         std::env::var("PORT")
             .expect("Port not specified")
             .parse()
