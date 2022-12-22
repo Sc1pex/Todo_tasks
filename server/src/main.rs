@@ -40,6 +40,7 @@ fn create_db() -> DbType {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
+    pretty_env_logger::init();
 
     let db_pool = create_db();
     let schema = Schema::build(query::Query, mutation::Mutation, EmptySubscription)
@@ -52,7 +53,13 @@ async fn main() -> std::io::Result<()> {
             .service(index)
             .service(graphql_playground)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((
+        "127.0.0.1",
+        std::env::var("PORT")
+            .expect("Port not specified")
+            .parse()
+            .expect("Port is not a number"),
+    ))?
     .run()
     .await
 }
