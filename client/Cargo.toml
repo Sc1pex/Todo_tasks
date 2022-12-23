@@ -1,0 +1,11 @@
+[package]
+name = "client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+graphql_client = { version = "0.11.0", features = ["reqwest"] }
+reqwest = "0.11.13"
+serde = { version = "1.0.151", features = ["derive"] }
+serde_json = "1.0.91"
+tokio = { version = "1.23.0", features = ["full"] }
