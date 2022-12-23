@@ -1,18 +1,17 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer};
+use anyhow::Result;
 use async_graphql::{http::GraphiQLSource, EmptySubscription, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
-use diesel::{
-    prelude::*,
-    r2d2::{ConnectionManager, Pool},
-};
+use migrations::Migrator;
+use sea_orm::Database;
+use sea_orm_migration::MigratorTrait;
 
-mod model;
+mod entities;
+mod migrations;
 mod mutation;
 mod query;
-mod schema;
 
 type SchemaType = Schema<query::Query, mutation::Mutation, EmptySubscription>;
-type DbType = Pool<ConnectionManager<PgConnection>>;
 
 #[get("/")]
 async fn graphql_playground() -> HttpResponse {
@@ -26,29 +25,17 @@ async fn index(schema: web::Data<SchemaType>, req: GraphQLRequest) -> GraphQLRes
     schema.execute(req.into_inner()).await.into()
 }
 
-fn create_db() -> DbType {
-    let manager = ConnectionManager::<PgConnection>::new(
-        std::env::var("DATABASE_URL").expect("Database url is not specified"),
-    );
-    Pool::builder()
-        .max_size(
-            std::env::var("MAX_DB_CONNECTIONS")
-                .expect("Max database connections not specified")
-                .parse()
-                .expect("Max database connection is not a number"),
-        )
-        .build(manager)
-        .expect("Could not build connection pool")
-}
-
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
     pretty_env_logger::init();
 
-    let db_pool = create_db();
+    let db_url = std::env::var("DATABASE_URL")?;
+    let db = Database::connect(db_url).await?;
+    Migrator::refresh(&db).await?;
+
     let schema = Schema::build(query::Query, mutation::Mutation, EmptySubscription)
-        .data(db_pool.clone())
+        .data(db)
         .finish();
 
     HttpServer::new(move || {
@@ -65,5 +52,7 @@ async fn main() -> std::io::Result<()> {
             .expect("Port is not a number"),
     ))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }

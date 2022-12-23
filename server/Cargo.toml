@@ -5,12 +5,16 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.2.1"
-async-graphql = "5.0.3"
+anyhow = "1.0.68"
+async-graphql = { version = "5.0.3", features = ["uuid", "chrono", "log"] }
 async-graphql-actix-web = "5.0.3"
 chrono = "0.4.23"
-diesel = { version = "2.0.2", features = ["postgres", "r2d2", "uuid", "chrono"] }
 dotenvy = "0.15.6"
 log = "0.4.17"
 pretty_env_logger = "0.4.0"
+rust-argon2 = "1.0.0"
+sea-orm = { version = "0.10.6", features = ["sqlx-postgres", "runtime-async-std-native-tls"] }
+sea-orm-migration = "0.10.6"
 serde_json = "1.0.91"
+thiserror = "1.0.38"
 uuid = { version = "1.2.2", features = ["v4"] }
