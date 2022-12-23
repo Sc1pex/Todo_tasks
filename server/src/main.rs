@@ -30,9 +30,16 @@ async fn index(schema: web::Data<SchemaType>, req: GraphQLRequest) -> GraphQLRes
 }
 
 fn create_db() -> DbType {
-    let manager = ConnectionManager::<PgConnection>::new(std::env::var("DATABASE_URL").unwrap());
+    let manager = ConnectionManager::<PgConnection>::new(
+        std::env::var("DATABASE_URL").expect("Database url is not specified"),
+    );
     Pool::builder()
-        .max_size(5)
+        .max_size(
+            std::env::var("MAX_DB_CONNECTIONS")
+                .expect("Max database connections not specified")
+                .parse()
+                .expect("Max database connection is not a number"),
+        )
         .build(manager)
         .expect("Could not build connection pool")
 }
